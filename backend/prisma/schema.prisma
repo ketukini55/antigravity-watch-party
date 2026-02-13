@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  roomsHosted Room[]    @relation("RoomHost")
+  messages    Message[]
+
+  // Friendships - Self-relation to handle a Friends list
+  friends  Friendship[] @relation("UserFriends")
+  friendOf Friendship[] @relation("UserFriendOf")
+
+  // Participation in Rooms
+  participating Participant[]
+}
+
+model Room {
+  id           String   @id @default(uuid())
+  inviteHash   String   @unique // Unique string for shareable URL
+  name         String
+  isPrivate    Boolean  @default(false)
+  passwordHash String? // Optional, for private rooms
+  hostId       String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  host         User          @relation("RoomHost", fields: [hostId], references: [id])
+  messages     Message[]
+  participants Participant[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  text      String
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+}
+
+model Participant {
+  id       String   @id @default(uuid())
+  joinedAt DateTime @default(now())
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId]) // Prevent duplicate participation in the same room
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId   String
+  user     User   @relation("UserFriends", fields: [userId], references: [id])
+  friendId String
+  friend   User   @relation("UserFriendOf", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
