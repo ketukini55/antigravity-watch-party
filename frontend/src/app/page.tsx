@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -10,7 +9,8 @@ export default function Home() {
 
   const createRoom = () => {
     setLoading(true);
-    const roomId = uuidv4().substring(0, 8); // Generate a short unique ID
+    // Generate a random 8-character ID without needing any 'uuid' package
+    const roomId = Math.random().toString(36).substring(2, 10);
     router.push(`/room/${roomId}`);
   };
 
@@ -44,7 +44,7 @@ export default function Home() {
             <p>Full SSL encryption via Cloudflare and Nginx.</p>
           </div>
           <div className="p-4 border border-zinc-800 rounded-2xl">
-            <h3 className="text-white mb-2">Next.js 14</h3>
+            <h3 className="text-white mb-2">Next.js 16</h3>
             <p>Blazing fast performance hosted on Vercel.</p>
           </div>
         </div>
